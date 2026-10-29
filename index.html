@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Independent Samples t Test</title>
+<style>
+  :root{
+    --ink:#1a1f36; --soft:#4a5370; --muted:#6b7490; --bg:#f4f6fb; --card:#fff; --line:#e3e8f3;
+    --teal:#0d9488; --teal-soft:#e6f6f4; --indigo:#4f46e5; --indigo-soft:#ecebfd;
+    --red:#c0392b; --red-soft:#fbecea; --amber:#c2680a; --amber-soft:#fdf2e3; --green:#1e7a3c; --green-soft:#eaf6ec;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.55;
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:0 16px 70px}
+  p{margin:0 0 12px}
+  header{background:linear-gradient(135deg,#0d9488 0%,#4f46e5 60%,#7c3aed 100%);color:#fff;padding:34px 16px 30px;margin-bottom:24px}
+  header .inner{max-width:900px;margin:0 auto}
+  header h1{margin:0 0 6px;font-size:clamp(1.5rem,4vw,2.1rem);letter-spacing:-.3px}
+  header p{margin:0;opacity:.93;max-width:680px}
+  .kicker{display:inline-block;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);padding:3px 11px;
+    border-radius:999px;font-size:.73rem;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;margin-bottom:12px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:16px;
+    box-shadow:0 1px 2px rgba(26,31,54,.05)}
+  .card h2{margin:0 0 10px;font-size:1.2rem}
+  .card h3{margin:18px 0 8px;font-size:1rem;color:var(--soft)}
+  .step{position:relative;padding-left:66px}
+  .step::before{content:attr(data-n);position:absolute;left:20px;top:20px;width:34px;height:34px;border-radius:10px;
+    background:var(--indigo);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .hidden{display:none}
+  .fade{animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media(max-width:600px){.step{padding-left:20px;padding-top:62px}.step::before{top:18px}}
+
+  .box{border-radius:11px;padding:14px 17px;margin:10px 0}
+  .box.teal{background:var(--teal-soft);border:1px solid #bfe6e1}
+  .box.indigo{background:var(--indigo-soft);border:1px solid #d8d4fb}
+  .box.amber{background:var(--amber-soft);border:1px solid #f0d9ae}
+  .box.red{background:var(--red-soft);border:1px solid #f0c7c1}
+  .box.green{background:var(--green-soft);border:1px solid #bcdfc3}
+  .big{font-size:1.08rem;font-weight:600}
+  .math{font-family:"Cambria Math",Cambria,Georgia,serif;font-size:1.12rem}
+  .facts{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:12px 0}
+  .fact{background:#f8f9fe;border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:center}
+  .fact .l{font-size:.72rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .fact .v{font-size:1.25rem;font-weight:800;margin-top:2px}
+  .hyp{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+  @media(max-width:600px){.hyp{grid-template-columns:1fr}}
+  .hyp div{border-radius:11px;padding:14px 16px}
+  .hyp .h0{background:var(--teal-soft);border:2px solid var(--teal)}
+  .hyp .h1{background:var(--amber-soft);border:2px solid var(--amber)}
+  .hyp b{display:block;font-size:.78rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .hyp .h0 b{color:var(--teal)} .hyp .h1 b{color:var(--amber)}
+  .hyp .math{font-size:1.4rem;font-weight:700}
+
+  button.btn{font-family:inherit;font-size:.95rem;font-weight:700;padding:10px 18px;border-radius:9px;border:2px solid var(--indigo);
+    background:var(--indigo);color:#fff;cursor:pointer}
+  button.btn:hover{filter:brightness(1.08)}
+  button.btn.ghost{background:#fff;color:var(--indigo)}
+  button.btn.ghost:hover{background:var(--indigo-soft)}
+  button.btn.sm{padding:6px 12px;font-size:.86rem}
+  .next{margin-top:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  .chartbox{background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px 8px 4px;margin:12px 0}
+  .cap{font-size:.76rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:0 8px 4px}
+  svg{display:block;width:100%;height:auto}
+
+  .cands{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin:12px 0}
+  .cand{border:2px solid var(--line);border-radius:11px;padding:12px 14px;background:#fafbff}
+  .cand .x{font-family:Consolas,monospace;font-size:1.15rem;font-weight:700;margin-bottom:8px}
+  .cand .fb{margin-top:8px;font-size:.88rem;display:none}
+  .cand.done .fb{display:block}
+  .cand.ok{border-color:var(--green);background:var(--green-soft)}
+  .cand.no{border-color:var(--red);background:var(--red-soft)}
+
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+  .stat{background:#f8f9fe;border:1px solid var(--line);border-radius:10px;padding:8px 14px}
+  .stat b{font-size:1.15rem}
+
+  input[type=range]{width:100%;accent-color:var(--indigo)}
+  .verdict{font-weight:800;font-size:1.05rem}
+  .verdict.rej{color:var(--red)} .verdict.keep{color:var(--green)}
+  table.cmp{width:100%;border-collapse:collapse;font-size:.95rem;margin-top:8px}
+  table.cmp th,table.cmp td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  table.cmp th{background:#f8f9fe;font-size:.8rem;letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
+  code{background:#fff;border:1px solid #cfe5d3;border-radius:6px;padding:2px 7px;font-family:Consolas,monospace;font-size:.88rem;color:#9d1d1d}
+  ol.recipe{margin:6px 0 0;padding-left:22px}
+  ol.recipe li{margin-bottom:6px}
+  .progress{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+  .bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--indigo));transition:width .4s}
+  .methods{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-top:12px}
+  .mbtn{font-family:inherit;text-align:left;border:2px solid var(--line);background:#fff;border-radius:12px;padding:14px 16px;cursor:pointer;color:var(--ink)}
+  .mbtn b{display:block;font-size:1.02rem;margin-bottom:3px}
+  .mbtn span{font-size:.86rem;color:var(--soft)}
+  .mbtn:hover{border-color:var(--indigo);background:var(--indigo-soft)}
+  .mbtn.on{border-color:var(--indigo);background:var(--indigo);color:#fff}
+  .mbtn.on span{color:#e4e2ff}
+  .mtag{display:inline-block;font-size:.7rem;letter-spacing:1px;text-transform:uppercase;font-weight:800;color:var(--indigo);
+    background:var(--indigo-soft);border-radius:999px;padding:2px 10px;margin-bottom:6px}
+</style>
+
+<style>
+ .dtable{width:100%;border-collapse:collapse;font-size:.95rem}
+ .dtable th,.dtable td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+ .dtable th{background:#f8f9fe;font-size:.78rem;letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
+ .dtable td.lab{font-weight:700;text-align:left;white-space:nowrap}
+ .scroll{overflow-x:auto}
+ .qbtn{font-family:inherit;font-weight:700;padding:10px 16px;border-radius:9px;border:2px solid var(--indigo);background:#fff;color:var(--indigo);cursor:pointer}
+ .qbtn.ok{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+ .qbtn.no{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+ .two{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+ @media(max-width:600px){.two{grid-template-columns:1fr}}
+ .grp{border-radius:11px;padding:12px 14px;border:2px solid var(--line)}
+ .grp.a{border-color:#0d9488;background:var(--teal-soft)} .grp.b{border-color:#4f46e5;background:var(--indigo-soft)}
+ .grp h4{margin:0 0 6px;font-size:.95rem}
+ .grp .stats{margin:0}
+ .eq{font-family:"Cambria Math",Cambria,Georgia,serif;font-size:1.1rem;line-height:1.9}
+ .eq .res{color:var(--indigo);font-weight:800}
+ .turn{border:3px dashed var(--amber);background:var(--amber-soft)}
+ .turn h2{color:var(--amber)}
+ table.cmp td code{white-space:normal;word-break:break-all}
+ @media(max-width:600px){.turn{padding:18px 14px}}
+</style>
+</head><body>
+<header><div class="inner">
+ <span class="kicker">MGSC 3005 · Week 12 · Session 1</span>
+ <h1>Independent Samples: Building the Pooled t Statistic</h1>
+ <p>We build the test statistic together, step by step. Then you finish the test yourself, exactly as in Week 11.</p>
+</div></header>
+<div class="wrap">
+ <div class="progress"><div class="bar"><span id="pbar"></span></div></div>
+
+ <div class="card step" data-n="1" id="s1">
+  <h2>The business question</h2>
+  <p>A company runs two customer-service centers. It timed a random sample of <b>12 calls at Center A</b> and <b>10 different calls at Center B</b> (minutes). At <b>α = 0.05</b>, is there a difference in the mean call-handling time between the two centers?</p>
+  <div class="scroll"><table class="dtable" id="dt"></table></div>
+  <button class="btn next" data-next="s2">Next: what kind of data is this? →</button>
+ </div>
+
+ <div class="card step hidden" data-n="2" id="s2">
+  <h2>Paired or independent?</h2>
+  <p>Last week the same subjects were measured twice, so we built one column <i>d</i>. Is that possible here?</p>
+  <div class="row">
+   <button class="qbtn" data-q="paired">Paired</button>
+   <button class="qbtn" data-q="indep">Independent</button>
+  </div>
+  <div class="box hidden fade" id="qfb"></div>
+  <table class="cmp hidden fade" id="qtab">
+   <tr><th></th><th>Paired (Week 11)</th><th>Independent (today)</th></tr>
+   <tr><td><b>Data</b></td><td>Same subjects measured twice; one row per subject</td><td>Two separate groups; sizes can differ</td></tr>
+   <tr><td><b>We test</b></td><td>μ<sub>d</sub>, the mean of the differences</td><td>μ<sub>1</sub> − μ<sub>2</sub>, the difference of two means</td></tr>
+   <tr><td><b>Estimate</b></td><td>d̄</td><td>x̄<sub>1</sub> − x̄<sub>2</sub></td></tr>
+  </table>
+  <button class="btn next hidden" id="b2" data-next="s3">Next: what exactly are we testing? →</button>
+ </div>
+
+ <div class="card step hidden" data-n="3" id="s3">
+  <h2>What exactly are we testing?</h2>
+  <div class="facts">
+   <div class="fact"><div class="l">Samples</div><div class="v" style="font-size:1rem">12 calls at A, 10 different calls at B</div></div>
+   <div class="fact"><div class="l">Populations</div><div class="v" style="font-size:1rem">All calls at A; all calls at B</div></div>
+   <div class="fact"><div class="l">Parameter</div><div class="v">μ<sub>1</sub> − μ<sub>2</sub></div></div>
+  </div>
+  <p>Group 1 = Center A, group 2 = Center B. We estimate μ<sub>1</sub> − μ<sub>2</sub> with x̄<sub>1</sub> − x̄<sub>2</sub>.</p>
+  <div class="hyp">
+   <div class="h0"><b>Null hypothesis</b><span class="math">H₀: μ₁ − μ₂ = 0</span><p style="margin:6px 0 0;font-size:.92rem">On average, the two centers take the same time.</p></div>
+   <div class="h1"><b>Alternative hypothesis</b><span class="math">H₁: μ₁ − μ₂ ≠ 0</span><p style="margin:6px 0 0;font-size:.92rem">The mean times differ.</p></div>
+  </div>
+  <div class="box indigo"><b>Two-tailed</b>, because the question asks whether the times are <i>different</i>, not whether one is longer.</div>
+  <button class="btn next" data-next="s4">Next: describe each group →</button>
+ </div>
+
+ <div class="card step hidden" data-n="4" id="s4">
+  <h2>Describe each group</h2>
+  <p>We do not know σ<sub>1</sub> or σ<sub>2</sub>, so we estimate the spread of each population with its <b>sample</b> standard deviation, just as in Week 11.</p>
+  <div class="chartbox"><div class="cap">Each dot is one call · the line marks the group mean</div><svg id="dots" viewBox="0 0 640 170"></svg></div>
+  <button class="btn ghost" id="calc4">Compute n, x̄, and s for each group</button>
+  <div class="hidden fade" id="sum4">
+   <div class="two" style="margin-top:12px">
+    <div class="grp a"><h4>Center A (group 1)</h4><div class="stats"><div class="stat">n₁ = <b>12</b></div><div class="stat">x̄₁ = <b>7.175</b></div><div class="stat">s₁ = <b>0.769</b></div></div></div>
+    <div class="grp b"><h4>Center B (group 2)</h4><div class="stats"><div class="stat">n₂ = <b>10</b></div><div class="stat">x̄₂ = <b>6.260</b></div><div class="stat">s₂ = <b>0.600</b></div></div></div>
+   </div>
+   <p style="margin-top:10px">Excel: <code>=COUNT(range)</code>, <code>=AVERAGE(range)</code>, <code>=STDEV.S(range)</code> for each group.</p>
+   <div class="box teal">The sample means differ by <b>x̄₁ − x̄₂ = 0.915 minutes</b>. Is that gap bigger than what random sampling alone would produce? To answer, we need a standard error.</div>
+   <button class="btn next" data-next="s5">Next: can we pool? →</button>
+  </div>
+ </div>
+
+ <div class="card step hidden" data-n="5" id="s5">
+  <h2>Can we pool? A quick equal-variance check</h2>
+  <p>The <b>pooled t test</b> combines s₁ and s₂ into one estimate of the common spread. That only makes sense if the two populations have <b>similar spread</b> (σ₁ = σ₂).</p>
+  <div class="box amber math" style="text-align:center">larger s ÷ smaller s = 0.769 ÷ 0.600 = <b>1.28</b></div>
+  <div class="chartbox"><div class="cap">Rule of thumb: a ratio below 2 means pooling is reasonable</div><svg id="gauge" viewBox="0 0 640 90"></svg></div>
+  <div class="box green"><b>1.28 &lt; 2 → pooling is reasonable.</b> We use the pooled (equal-variance) t test.</div>
+  <p style="font-size:.92rem;color:var(--soft)">If the ratio were 2 or more, we would still run the pooled test in this course but add a caution sentence. (The Welch test, T.TEST type 3, does not assume equal variances. It is not covered.)</p>
+  <button class="btn next" data-next="s6">Next: the pooled variance →</button>
+ </div>
+
+ <div class="card step hidden" data-n="6" id="s6">
+  <h2>The pooled variance s<sub>p</sub>²</h2>
+  <p>A weighted average of the two sample variances, with weights n − 1:</p>
+  <div class="box amber eq" style="text-align:center">s<sub>p</sub>² = [ (n₁ − 1)s₁² + (n₂ − 1)s₂² ] ÷ (n₁ + n₂ − 2)</div>
+  <button class="btn ghost" id="calc6">Plug in the numbers</button>
+  <div class="hidden fade" id="sum6">
+   <div class="eq">s<sub>p</sub>² = [ (12 − 1)(0.769)² + (10 − 1)(0.600)² ] ÷ (12 + 10 − 2)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;= [ 11(0.591) + 9(0.360) ] ÷ 20 = (6.503 + 3.244) ÷ 20 = <span class="res">0.487</span></div>
+   <div class="box teal">0.487 sits between s₂² = 0.360 and s₁² = 0.591, closer to Center A's value because Center A has more calls.</div>
+   <p>Excel: <code>=((n1-1)*s1^2 + (n2-1)*s2^2)/(n1+n2-2)</code></p>
+   <button class="btn next" data-next="s7">Next: standard error and t →</button>
+  </div>
+ </div>
+
+ <div class="card step hidden" data-n="7" id="s7">
+  <h2>Standard error, t, and df</h2>
+  <div class="box amber eq" style="text-align:center">SE = √[ s<sub>p</sub>² (1/n₁ + 1/n₂) ] &nbsp;&nbsp;·&nbsp;&nbsp; t = (x̄₁ − x̄₂ − 0) ÷ SE &nbsp;&nbsp;·&nbsp;&nbsp; df = n₁ + n₂ − 2</div>
+  <button class="btn ghost" id="calc7">Compute</button>
+  <div class="hidden fade" id="sum7">
+   <div class="eq">SE = √[ 0.487 × (1/12 + 1/10) ] = √(0.487 × 0.183) = <span class="res">0.299</span><br>
+   t = (7.175 − 6.260 − 0) ÷ 0.299 = 0.915 ÷ 0.299 = <span class="res">3.061</span><br>
+   df = 12 + 10 − 2 = <span class="res">20</span></div>
+   <div class="chartbox"><div class="cap">The observed gap measured in standard errors</div><svg id="ruler" viewBox="0 0 640 120"></svg></div>
+   <div class="box indigo">The gap between the two sample means is about <b>3.06 standard errors</b> away from 0, the value H₀ claims.</div>
+   <table class="cmp">
+    <tr><th></th><th>Week 11: paired</th><th>Today: independent</th></tr>
+    <tr><td><b>t</b></td><td>(d̄ − 0) ÷ (s<sub>d</sub>/√n)</td><td>(x̄₁ − x̄₂ − 0) ÷ √[s<sub>p</sub>²(1/n₁ + 1/n₂)]</td></tr>
+    <tr><td><b>df</b></td><td>n − 1</td><td>n₁ + n₂ − 2</td></tr>
+    <tr><td><b>T.TEST type</b></td><td>1</td><td>2</td></tr>
+   </table>
+   <div class="box green big" style="margin-top:12px">From here on, everything is exactly Week 11.</div>
+   <button class="btn next" data-next="s8">Next: your turn →</button>
+  </div>
+ </div>
+
+ <div class="card turn hidden" id="s8">
+  <h2>Your turn: finish the test and submit on Canvas</h2>
+  <div class="facts">
+   <div class="fact"><div class="l">t</div><div class="v">3.061</div></div>
+   <div class="fact"><div class="l">df</div><div class="v">20</div></div>
+   <div class="fact"><div class="l">α</div><div class="v">0.05</div></div>
+   <div class="fact"><div class="l">Test</div><div class="v" style="font-size:1rem">Two-tailed</div></div>
+  </div>
+  <ol class="recipe">
+   <li>Using t = 3.061 and df = 20, compute the <b>p-value</b> in Excel. Pick the right pattern from the table below. Report it to 4 decimals.</li>
+   <li>At <b>α = 0.05</b>, do you <b>reject H₀</b> or <b>fail to reject H₀</b>? Explain in one sentence.</li>
+   <li>Check your p-value with <code>=T.TEST(Center A, Center B, tails, type)</code>. Which tails and type did you use?</li>
+   <li>Write a one-sentence conclusion for the company.</li>
+  </ol>
+  <table class="cmp">
+   <tr><th>Tail (H₁)</th><th>p-value with T.DIST (from Week 11)</th></tr>
+   <tr><td>Left (&lt;)</td><td><code>=T.DIST(t, df, TRUE)</code></td></tr>
+   <tr><td>Right (&gt;)</td><td><code>=1-T.DIST(t, df, TRUE)</code></td></tr>
+   <tr><td>Two (≠)</td><td><code>=2*(1-T.DIST(ABS(t), df, TRUE))</code></td></tr>
+  </table>
+  <p style="margin-top:12px">The data are in the Week 12 Excel file, tab <b>S1_Independent</b>. Submit your answers to the Canvas activity.</p>
+ </div>
+</div>
+<script>
+(function(){
+ var $=function(i){return document.getElementById(i)};
+ var A=[6.8,7.4,5.9,8.1,7.0,6.5,7.7,8.4,6.2,7.3,7.9,6.9], B=[6.1,5.8,6.9,5.4,6.6,7.2,5.9,6.3,5.6,6.8];
+ // data table
+ var h='<tr><th></th>'; for(var i=1;i<=12;i++) h+='<th>'+i+'</th>'; h+='</tr>';
+ h+='<tr><td class="lab">Center A</td>'+A.map(function(v){return '<td>'+v.toFixed(1)+'</td>'}).join('')+'</tr>';
+ h+='<tr><td class="lab">Center B</td>'+B.map(function(v){return '<td>'+v.toFixed(1)+'</td>'}).join('')+'<td>–</td><td>–</td></tr>';
+ $('dt').innerHTML=h;
+ var NS='http://www.w3.org/2000/svg';
+ function el(svg,tag,at,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e;}
+ // dot plot
+ var showMeans=false;
+ function dots(){var s=$('dots'); s.innerHTML=''; var x0=60,x1=620,lo=5,hi=9; function X(v){return x0+(v-lo)/(hi-lo)*(x1-x0)}
+  el(s,'line',{x1:x0,x2:x1,y1:150,y2:150,stroke:'#1a1f36'});
+  for(var v=5;v<=9;v++){el(s,'line',{x1:X(v),x2:X(v),y1:150,y2:155,stroke:'#1a1f36'});el(s,'text',{x:X(v),y:168,'text-anchor':'middle','font-size':12,fill:'#4a5370'},v+' min');}
+  [[A,'#0d9488',50,'Center A',7.175],[B,'#4f46e5',110,'Center B',6.26]].forEach(function(g){
+   el(s,'text',{x:4,y:g[2]+4,'font-size':12,'font-weight':700,fill:g[1]},g[3]);
+   var seen={}; g[0].forEach(function(v){var k=v.toFixed(1);seen[k]=(seen[k]||0)+1;el(s,'circle',{cx:X(v),cy:g[2]-(seen[k]-1)*12,r:6,fill:g[1],opacity:.8});});
+   if(showMeans){el(s,'line',{x1:X(g[4]),x2:X(g[4]),y1:g[2]-26,y2:g[2]+14,stroke:'#c2680a','stroke-width':3});el(s,'text',{x:X(g[4])+6,y:g[2]-16,'font-size':12,'font-weight':700,fill:'#c2680a'},'x̄ = '+g[4].toFixed(3));}
+  });}
+ dots();
+ // gauge
+ (function(){var s=$('gauge'),x0=30,x1=610;function X(v){return x0+v/3*(x1-x0)}
+  el(s,'rect',{x:X(0),y:30,width:X(2)-X(0),height:22,fill:'#eaf6ec'});el(s,'rect',{x:X(2),y:30,width:X(3)-X(2),height:22,fill:'#fbecea'});
+  el(s,'text',{x:X(1),y:24,'text-anchor':'middle','font-size':12,'font-weight':700,fill:'#1e7a3c'},'pool');
+  el(s,'text',{x:X(2.5),y:24,'text-anchor':'middle','font-size':12,'font-weight':700,fill:'#c0392b'},'caution');
+  [1,2,3].forEach(function(v){el(s,'text',{x:X(v),y:72,'text-anchor':'middle','font-size':12,fill:'#4a5370'},v);});
+  el(s,'line',{x1:X(2),x2:X(2),y1:26,y2:56,stroke:'#1a1f36','stroke-dasharray':'4 3'});
+  el(s,'line',{x1:X(1.28),x2:X(1.28),y1:22,y2:60,stroke:'#4f46e5','stroke-width':4});
+  el(s,'text',{x:X(1.28),y:86,'text-anchor':'middle','font-size':13,'font-weight':800,fill:'#4f46e5'},'1.28');})();
+ // ruler
+ function ruler(){var s=$('ruler');s.innerHTML='';var x0=40,x1=600,se=0.2989;function X(v){return x0+v/1.0*(x1-x0)}
+  el(s,'line',{x1:x0,x2:x1,y1:70,y2:70,stroke:'#1a1f36'});
+  for(var k=0;k<=3;k++){var xx=X(k*se);el(s,'line',{x1:xx,x2:xx,y1:62,y2:78,stroke:'#1a1f36'});el(s,'text',{x:xx,y:96,'text-anchor':'middle','font-size':12,fill:'#4a5370'},k===0?'0 (H₀)':k+' SE');}
+  el(s,'line',{x1:X(0),x2:X(0.915),y1:40,y2:40,stroke:'#4f46e5','stroke-width':6});
+  el(s,'circle',{cx:X(0.915),cy:40,r:7,fill:'#4f46e5'});
+  el(s,'text',{x:X(0.915),y:26,'text-anchor':'middle','font-size':13,'font-weight':800,fill:'#4f46e5'},'x̄₁ − x̄₂ = 0.915  →  t = 3.06');
+  el(s,'text',{x:X(0.5),y:114,'text-anchor':'middle','font-size':11,fill:'#6b7490'},'1 SE = 0.299 minutes');}
+ // progress / reveal
+ var order=['s1','s2','s3','s4','s5','s6','s7','s8'];
+ function prog(){var n=0;order.forEach(function(id){if(!$(id).classList.contains('hidden'))n++;});$('pbar').style.width=(n/order.length*100)+'%';}
+ document.querySelectorAll('[data-next]').forEach(function(b){b.addEventListener('click',function(){var s=$(b.getAttribute('data-next'));
+   s.classList.remove('hidden');s.classList.add('fade');b.style.display='none';prog();s.scrollIntoView({behavior:'smooth',block:'start'});});});
+ // quiz
+ document.querySelectorAll('.qbtn').forEach(function(b){b.addEventListener('click',function(){
+  document.querySelectorAll('.qbtn').forEach(function(x){x.classList.remove('ok','no')});
+  var ok=b.getAttribute('data-q')==='indep'; b.classList.add(ok?'ok':'no');
+  var f=$('qfb'); f.className='box fade '+(ok?'green':'red');
+  f.innerHTML=ok?'<b>Correct: independent.</b> Different calls at each center, no call appears in both columns, and the groups even have different sizes (12 and 10). There are no partners, so we cannot build a d column. Instead, we compare the two means.'
+               :'<b>Not quite.</b> Paired data need the same subject measured twice. Here each call is timed at only one center, and the groups have different sizes (12 and 10), so no row has a partner.';
+  $('qtab').classList.remove('hidden'); if(ok) $('b2').classList.remove('hidden');});});
+ $('calc4').addEventListener('click',function(){showMeans=true;dots();$('sum4').classList.remove('hidden');this.style.display='none';});
+ $('calc6').addEventListener('click',function(){$('sum6').classList.remove('hidden');this.style.display='none';});
+ $('calc7').addEventListener('click',function(){ruler();$('sum7').classList.remove('hidden');this.style.display='none';});
+ prog();
+})();
+</script>
+
+</body></html>
