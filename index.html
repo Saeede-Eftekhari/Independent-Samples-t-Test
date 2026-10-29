@@ -119,6 +119,7 @@
  .eq .res{color:var(--indigo);font-weight:800}
  .turn{border:3px dashed var(--amber);background:var(--amber-soft)}
  .turn h2{color:var(--amber)}
+ .ask{display:inline-block;background:var(--red-soft);color:var(--red);border:2px dashed var(--red);border-radius:8px;padding:0 6px;font-weight:800}
  table.cmp td code{white-space:normal;word-break:break-all}
  @media(max-width:600px){.turn{padding:18px 14px}}
 </style>
@@ -183,11 +184,30 @@
    </div>
    <p style="margin-top:10px">Excel: <code>=COUNT(range)</code>, <code>=AVERAGE(range)</code>, <code>=STDEV.S(range)</code> for each group.</p>
    <div class="box teal">The sample means differ by <b>x̄₁ − x̄₂ = 0.915 minutes</b>. Is that gap bigger than what random sampling alone would produce? To answer, we need a standard error.</div>
+   <button class="btn next" data-next="s4b">Next: building the test statistic →</button>
+  </div>
+ </div>
+
+ <div class="card step hidden" data-n="5" id="s4b">
+  <h2>Building the test statistic: what goes inside?</h2>
+  <p>We are now ready to compute our test statistic, <b>t calc</b>. You can already guess its shape from Weeks 9–11:</p>
+  <div class="box amber" style="text-align:center"><span class="eq" style="font-size:1.35rem">t = (x̄₁ − x̄₂ − 0) ÷ ( <span class="ask">s</span> ∕ √<span class="ask">n</span> )</span>
+   <div style="font-size:.9rem;color:var(--soft);margin-top:4px">(estimate − value under H₀) ÷ standard error</div></div>
+  <p>But now we have <b>two groups</b>. So what do we put for <b>s</b>, and what do we put for <b>n</b>? Click each card.</p>
+  <div class="two">
+   <button class="mbtn pick2" data-k="s"><b>s = ?</b><span>Click to reveal</span></button>
+   <button class="mbtn pick2" data-k="n"><b>n = ?</b><span>Click to reveal</span></button>
+  </div>
+  <div class="box teal hidden fade" id="ans-s"><b>For s:</b> we have two, s₁ = 0.769 and s₂ = 0.600. If the two spreads are similar, we combine them into one <b>pooled</b> value, s<sub>p</sub>. The next step checks whether pooling is OK; the step after that computes s<sub>p</sub>.</div>
+  <div class="box indigo hidden fade" id="ans-n"><b>For n:</b> we have two, n₁ = 12 and n₂ = 10. Each group adds its own sampling uncertainty, so the single 1/n becomes <b>1/n₁ + 1/n₂</b>.</div>
+  <div class="hidden fade" id="ans-all">
+   <div class="box green" style="text-align:center"><b>Putting it together</b><br><span class="eq" style="font-size:1.3rem">t = (x̄₁ − x̄₂ − 0) ÷ √[ s<sub>p</sub>² (1/n₁ + 1/n₂) ]</span>
+    <div style="font-size:.9rem;color:var(--soft);margin-top:4px">Same idea as before: s ∕ √n = √(s² × 1/n). We just swap in s<sub>p</sub>² and 1/n₁ + 1/n₂.</div></div>
    <button class="btn next" data-next="s5">Next: can we pool? →</button>
   </div>
  </div>
 
- <div class="card step hidden" data-n="5" id="s5">
+ <div class="card step hidden" data-n="6" id="s5">
   <h2>Can we pool? A quick equal-variance check</h2>
   <p>The <b>pooled t test</b> combines s₁ and s₂ into one estimate of the common spread. That only makes sense if the two populations have <b>similar spread</b> (σ₁ = σ₂).</p>
   <div class="box amber math" style="text-align:center">larger s ÷ smaller s = 0.769 ÷ 0.600 = <b>1.28</b></div>
@@ -197,7 +217,7 @@
   <button class="btn next" data-next="s6">Next: the pooled variance →</button>
  </div>
 
- <div class="card step hidden" data-n="6" id="s6">
+ <div class="card step hidden" data-n="7" id="s6">
   <h2>The pooled variance s<sub>p</sub>²</h2>
   <p>A weighted average of the two sample variances, with weights n − 1:</p>
   <div class="box amber eq" style="text-align:center">s<sub>p</sub>² = [ (n₁ − 1)s₁² + (n₂ − 1)s₂² ] ÷ (n₁ + n₂ − 2)</div>
@@ -211,7 +231,7 @@
   </div>
  </div>
 
- <div class="card step hidden" data-n="7" id="s7">
+ <div class="card step hidden" data-n="8" id="s7">
   <h2>Standard error, t, and df</h2>
   <div class="box amber eq" style="text-align:center">SE = √[ s<sub>p</sub>² (1/n₁ + 1/n₂) ] &nbsp;&nbsp;·&nbsp;&nbsp; t = (x̄₁ − x̄₂ − 0) ÷ SE &nbsp;&nbsp;·&nbsp;&nbsp; df = n₁ + n₂ − 2</div>
   <button class="btn ghost" id="calc7">Compute</button>
@@ -295,7 +315,7 @@
   el(s,'text',{x:X(0.915),y:26,'text-anchor':'middle','font-size':13,'font-weight':800,fill:'#4f46e5'},'x̄₁ − x̄₂ = 0.915  →  t = 3.06');
   el(s,'text',{x:X(0.5),y:114,'text-anchor':'middle','font-size':11,fill:'#6b7490'},'1 SE = 0.299 minutes');}
  // progress / reveal
- var order=['s1','s2','s3','s4','s5','s6','s7','s8'];
+ var order=['s1','s2','s3','s4','s4b','s5','s6','s7','s8'];
  function prog(){var n=0;order.forEach(function(id){if(!$(id).classList.contains('hidden'))n++;});$('pbar').style.width=(n/order.length*100)+'%';}
  document.querySelectorAll('[data-next]').forEach(function(b){b.addEventListener('click',function(){var s=$(b.getAttribute('data-next'));
    s.classList.remove('hidden');s.classList.add('fade');b.style.display='none';prog();s.scrollIntoView({behavior:'smooth',block:'start'});});});
@@ -308,6 +328,10 @@
                :'<b>Not quite.</b> Paired data need the same subject measured twice. Here each call is timed at only one center, and the groups have different sizes (12 and 10), so no row has a partner.';
   $('qtab').classList.remove('hidden'); if(ok) $('b2').classList.remove('hidden');});});
  $('calc4').addEventListener('click',function(){showMeans=true;dots();$('sum4').classList.remove('hidden');this.style.display='none';});
+ var seen2={};
+ document.querySelectorAll('.pick2').forEach(function(b){b.addEventListener('click',function(){var k=b.getAttribute('data-k');
+  b.classList.add('on');b.querySelector('b').innerHTML=(k==='s'?'s → s<sub>p</sub> (pooled)':'n → 1/n₁ + 1/n₂');b.querySelector('span').textContent='Revealed';
+  $('ans-'+k).classList.remove('hidden');seen2[k]=1;if(seen2.s&&seen2.n)$('ans-all').classList.remove('hidden');});});
  $('calc6').addEventListener('click',function(){$('sum6').classList.remove('hidden');this.style.display='none';});
  $('calc7').addEventListener('click',function(){ruler();$('sum7').classList.remove('hidden');this.style.display='none';});
  prog();
