@@ -239,8 +239,8 @@
    <div class="eq">SE = √[ 0.487 × (1/12 + 1/10) ] = √(0.487 × 0.183) = <span class="res">0.299</span><br>
    t = (7.175 − 6.260 − 0) ÷ 0.299 = 0.915 ÷ 0.299 = <span class="res">3.061</span><br>
    df = 12 + 10 − 2 = <span class="res">20</span></div>
-   <div class="chartbox"><div class="cap">The observed gap measured in standard errors</div><svg id="ruler" viewBox="0 0 640 120"></svg></div>
-   <div class="box indigo">The gap between the two sample means is about <b>3.06 standard errors</b> away from 0, the value H₀ claims.</div>
+   <div class="chartbox"><div class="cap">If H₀ is true, t follows a t distribution with df = 20</div><svg id="tc1" viewBox="0 0 640 230"></svg></div>
+   <div class="box indigo">Our t calc = <b>3.06</b>: the gap between the two sample means is about 3.06 standard errors away from 0, the value H₀ claims. That is far out in the tail of the curve.</div>
    <table class="cmp">
     <tr><th></th><th>Week 11: paired</th><th>Today: independent</th></tr>
     <tr><td><b>t</b></td><td>(d̄ − 0) ÷ (s<sub>d</sub>/√n)</td><td>(x̄₁ − x̄₂ − 0) ÷ √[s<sub>p</sub>²(1/n₁ + 1/n₂)]</td></tr>
@@ -260,6 +260,8 @@
    <div class="fact"><div class="l">α</div><div class="v">0.05</div></div>
    <div class="fact"><div class="l">Test</div><div class="v" style="font-size:1rem">Two-tailed</div></div>
   </div>
+  <div class="chartbox"><div class="cap">Same curve, same t calc · the shaded area is the p-value</div><svg id="tc2" viewBox="0 0 640 230"></svg></div>
+  <div class="box red"><b>The shaded area in BOTH tails is the p-value you will compute.</b> H₁ is ≠, so a result as far from 0 as 3.06 in either direction counts: beyond +3.06 and beyond −3.06.</div>
   <ol class="recipe">
    <li>Using t = 3.061 and df = 20, compute the <b>p-value</b> in Excel. Pick the right pattern from the table below. Report it to 4 decimals.</li>
    <li>At <b>α = 0.05</b>, do you <b>reject H₀</b> or <b>fail to reject H₀</b>? Explain in one sentence.</li>
@@ -314,6 +316,28 @@
   el(s,'circle',{cx:X(0.915),cy:40,r:7,fill:'#4f46e5'});
   el(s,'text',{x:X(0.915),y:26,'text-anchor':'middle','font-size':13,'font-weight':800,fill:'#4f46e5'},'x̄₁ − x̄₂ = 0.915  →  t = 3.06');
   el(s,'text',{x:X(0.5),y:114,'text-anchor':'middle','font-size':11,fill:'#6b7490'},'1 SE = 0.299 minutes');}
+ // t curves
+ function tcurve(id, shade){var s=$(id);s.innerHTML='';var df=20,x0=30,x1=610,base=190,top=30,lo=-4.5,hi=4.5;
+  function f(x){return Math.pow(1+x*x/df,-(df+1)/2);}
+  function X(v){return x0+(v-lo)/(hi-lo)*(x1-x0)} function Y(y){return base-(base-top)*y}
+  var tv=3.061, pts=[];for(var i=0;i<=300;i++){var x=lo+(hi-lo)*i/300;pts.push([X(x),Y(f(x))]);}
+  el(s,'path',{d:'M'+X(lo)+','+base+' '+pts.map(function(p){return 'L'+p[0].toFixed(1)+','+p[1].toFixed(1)}).join(' ')+' L'+X(hi)+','+base+' Z',fill:'#eef4f2'});
+  if(shade){[[tv,hi],[lo,-tv]].forEach(function(r){var q=[];for(var i=0;i<=60;i++){var x=r[0]+(r[1]-r[0])*i/60;q.push('L'+X(x).toFixed(1)+','+Y(f(x)).toFixed(1));}
+    el(s,'path',{d:'M'+X(r[0])+','+base+' '+q.join(' ')+' L'+X(r[1])+','+base+' Z',fill:'#c0392b',opacity:.9});
+    el(s,'path',{d:'M'+X(r[0])+','+(base-1)+' '+q.join(' ')+' L'+X(r[1])+','+(base-1),fill:'none',stroke:'#c0392b','stroke-width':6,'stroke-linecap':'round'});});
+   [[3.85,'right tail'],[-3.85,'left tail']].forEach(function(a){el(s,'text',{x:X(a[0]),y:base-48,'text-anchor':'middle','font-size':12,'font-weight':800,fill:'#c0392b'},a[1]);
+    el(s,'line',{x1:X(a[0]),x2:X(a[0]+(a[0]>0?-0.25:0.25)),y1:base-42,y2:base-8,stroke:'#c0392b','stroke-width':1.5});});
+   el(s,'text',{x:X(-3.2),y:top+20,'text-anchor':'middle','font-size':14,'font-weight':800,fill:'#c0392b'},'p-value =');
+   el(s,'text',{x:X(-3.2),y:top+38,'text-anchor':'middle','font-size':14,'font-weight':800,fill:'#c0392b'},'left + right red area = ?');}
+  el(s,'path',{d:'M'+pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1)}).join(' L'),fill:'none',stroke:'#1a1f36','stroke-width':2.2});
+  el(s,'line',{x1:x0,x2:x1,y1:base,y2:base,stroke:'#1a1f36'});
+  [-3,-2,-1,0,1,2,3].forEach(function(v){el(s,'line',{x1:X(v),x2:X(v),y1:base,y2:base+5,stroke:'#1a1f36'});el(s,'text',{x:X(v),y:base+19,'text-anchor':'middle','font-size':12,fill:'#4a5370'},v);});
+  el(s,'line',{x1:X(tv),x2:X(tv),y1:base,y2:top+30,stroke:'#4f46e5','stroke-width':3});
+  el(s,'path',{d:'M'+(X(tv)-7)+','+(top+22)+' L'+(X(tv)+7)+','+(top+22)+' L'+X(tv)+','+(top+32)+' Z',fill:'#4f46e5'});
+  el(s,'text',{x:X(tv),y:top+14,'text-anchor':'middle','font-size':14,'font-weight':800,fill:'#4f46e5'},'t calc = 3.06');
+  if(shade){el(s,'line',{x1:X(-tv),x2:X(-tv),y1:base,y2:top+70,stroke:'#6b7490','stroke-width':1.5,'stroke-dasharray':'4 3'});
+   el(s,'text',{x:X(-tv),y:top+62,'text-anchor':'middle','font-size':12,fill:'#6b7490'},'−3.06');}
+  el(s,'text',{x:X(0),y:base+36,'text-anchor':'middle','font-size':12,fill:'#6b7490'},'t with df = 20 (if H₀ is true)');}
  // progress / reveal
  var order=['s1','s2','s3','s4','s4b','s5','s6','s7','s8'];
  function prog(){var n=0;order.forEach(function(id){if(!$(id).classList.contains('hidden'))n++;});$('pbar').style.width=(n/order.length*100)+'%';}
@@ -333,7 +357,7 @@
   b.classList.add('on');b.querySelector('b').innerHTML=(k==='s'?'s → s<sub>p</sub> (pooled)':'n → 1/n₁ + 1/n₂');b.querySelector('span').textContent='Revealed';
   $('ans-'+k).classList.remove('hidden');seen2[k]=1;if(seen2.s&&seen2.n)$('ans-all').classList.remove('hidden');});});
  $('calc6').addEventListener('click',function(){$('sum6').classList.remove('hidden');this.style.display='none';});
- $('calc7').addEventListener('click',function(){ruler();$('sum7').classList.remove('hidden');this.style.display='none';});
+ $('calc7').addEventListener('click',function(){tcurve('tc1',false);tcurve('tc2',true);$('sum7').classList.remove('hidden');this.style.display='none';});
  prog();
 })();
 </script>
